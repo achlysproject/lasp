@@ -21,7 +21,7 @@
 -module(lasp_plumtree_backend).
 -author("Christopher S. Meiklejohn <christopher.meiklejohn@gmail.com>").
 
--behaviour(plumtree_broadcast_handler).
+% -behaviour(plumtree_broadcast_handler).
 
 %% API
 -export([start_link/0,
