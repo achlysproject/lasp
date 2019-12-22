@@ -66,43 +66,43 @@ run(Module, Args) ->
     Pid = self(),
 
     spawn_link(fun() ->
-                    _ = lager:info("Initializing simulation!"),
+                    _ = logger:info("Initializing simulation!"),
                     {ok, State} = Module:init(Args),
 
                     %% Unfortunately, we have to wait for the cluster to stabilize, else
                     %% some of the clients running at other node will get not_found
                     %% operations.
-                    _ = lager:info("Waiting for cluster to stabilize..."),
+                    _ = logger:info("Waiting for cluster to stabilize..."),
                     timer:sleep(2000),
 
                     %% Launch client processes.
-                    _ = lager:info("Launching clients!"),
+                    _ = logger:info("Launching clients!"),
                     {ok, State1} = Module:clients(State),
 
                     %% Initialize simulation.
-                    _ = lager:info("Running simulation!"),
+                    _ = logger:info("Running simulation!"),
                     {ok, State2} = Module:simulate(State1),
 
                     %% Wait until we receive num events.
-                    _ = lager:info("Waiting for event generation to complete!"),
+                    _ = logger:info("Waiting for event generation to complete!"),
                     {ok, State3} = Module:wait(State2),
 
                     %% Terminate all clients.
-                    _ = lager:info("Terminating clients!"),
+                    _ = logger:info("Terminating clients!"),
                     {ok, State4} = Module:terminate(State3),
 
                     %% Finish and summarize.
-                    _ = lager:info("Summarizing results!"),
+                    _ = logger:info("Summarizing results!"),
                     {ok, Term} = Module:summarize(State4),
 
-                    _ = lager:info("Processes before termination: ~p",
+                    _ = logger:info("Processes before termination: ~p",
                                    [length(processes())]),
 
                     Pid ! {ok, Term}
                end),
     receive
         {ok, Term} ->
-            _ = lager:info("Processes after termination: ~p",
+            _ = logger:info("Processes after termination: ~p",
                            [length(processes())]),
             {ok, Term}
     end.

@@ -56,7 +56,7 @@ start_link() ->
 %% @private
 -spec init([term()]) -> {ok, #state{}}.
 init([]) ->
-    lager:info("Advertisement counter server initialized."),
+    logger:info("Advertisement counter server initialized."),
 
     %% Delay for graph connectedness.
     wait_for_connectedness(),
@@ -90,13 +90,13 @@ init([]) ->
 -spec handle_call(term(), {pid(), term()}, #state{}) ->
     {reply, term(), #state{}}.
 handle_call(Msg, _From, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {reply, ok, State}.
 
 %% @private
 -spec handle_cast(term(), #state{}) -> {noreply, #state{}}.
 handle_cast(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -110,12 +110,12 @@ handle_info(log, #state{}=State) ->
     lists:foreach(
         fun({#ad{counter=Counter}, _Contract}) ->
             {ok, Value} = lasp:query(Counter),
-            lager:info("Impressions on ~p : ~p", [Counter, Value])
+            logger:info("Impressions on ~p : ~p", [Counter, Value])
         end,
         sets:to_list(Ads)
     ),
 
-    lager:info("Enabled advertisements: ~p", [sets:size(Ads)]),
+    logger:info("Enabled advertisements: ~p", [sets:size(Ads)]),
 
     %% Schedule advertisement counter impression.
     schedule_logging(),
@@ -145,12 +145,12 @@ handle_info(check_simulation_end, #state{ad_list=AdList}=State) ->
         AdsDisabledAndLogs
     ),
 
-    lager:info("Checking for simulation end: ~p nodes with ads disabled and ~p nodes with logs pushed: of ~p clients.",
+    logger:info("Checking for simulation end: ~p nodes with ads disabled and ~p nodes with logs pushed: of ~p clients.",
                [length(NodesWithAdsDisabled), length(NodesWithLogsPushed), client_number()]),
 
     case length(NodesWithLogsPushed) == client_number() of
         true ->
-            lager:info("All nodes have pushed their logs"),
+            logger:info("All nodes have pushed their logs"),
             log_overcounting_and_convergence(AdList),
             lasp_instrumentation:stop(),
             lasp_support:push_logs(),
@@ -163,7 +163,7 @@ handle_info(check_simulation_end, #state{ad_list=AdList}=State) ->
     {noreply, State};
 
 handle_info(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -267,7 +267,7 @@ trigger(#ad{counter=CounterId} = Ad, Actor) ->
                                      ?MAX_IMPRESSIONS_DEFAULT),
 
     EnforceFun = fun() ->
-            lager:info("Threshold for ~p reached; disabling!", [Ad]),
+            logger:info("Threshold for ~p reached; disabling!", [Ad]),
 
             %% Remove the advertisement.
             {ok, _} = lasp:update(?ADS, {rmv, Ad}, Actor)

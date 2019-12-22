@@ -63,7 +63,7 @@ process_post(ReqData, Ctx) ->
                 {ok, Object} ->
                     {true, ReqData, Ctx#ctx{id=BinaryId, type=AtomType, object=Object}};
                 Error ->
-                    lager:info("Received error response: ~p", [Error]),
+                    logger:info("Received error response: ~p", [Error]),
                     {false, ReqData, Ctx}
             end
     end.
@@ -85,7 +85,7 @@ resource_exists(ReqData, Ctx) ->
                 {ok, Object} ->
                     {true, ReqData, Ctx#ctx{id=BinaryId, type=AtomType, object=Object}};
                 Error ->
-                    lager:info("Received error response: ~p", [Error]),
+                    logger:info("Received error response: ~p", [Error]),
                     {false, ReqData, Ctx}
             end
    end.

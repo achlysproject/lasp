@@ -56,7 +56,7 @@ start_link() ->
 %% @private
 -spec init([term()]) -> {ok, #state{}}.
 init([]) ->
-    lager:info("Game tournament server initialized."),
+    logger:info("Game tournament server initialized."),
 
     %% Delay for graph connectedness.
     wait_for_connectedness(),
@@ -90,13 +90,13 @@ init([]) ->
 -spec handle_call(term(), {pid(), term()}, #state{}) ->
     {reply, term(), #state{}}.
 handle_call(Msg, _From, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {reply, ok, State}.
 
 %% @private
 -spec handle_cast(term(), #state{}) -> {noreply, #state{}}.
 handle_cast(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -107,7 +107,7 @@ handle_info(log, #state{}=State) ->
     %% Print number of games.
     {ok, Games} = lasp:query(?ENROLLABLE_GAMES),
 
-    lager:info("Game list: ~p", [sets:size(Games)]),
+    logger:info("Game list: ~p", [sets:size(Games)]),
 
     %% Schedule logging.
     schedule_logging(),
@@ -137,12 +137,12 @@ handle_info(check_simulation_end, #state{game_list=GameList}=State) ->
         GamesEnrolledAndLogs
     ),
 
-    lager:info("Checking for simulation end: ~p nodes with enrolled games and ~p nodes with logs pushed.",
+    logger:info("Checking for simulation end: ~p nodes with enrolled games and ~p nodes with logs pushed.",
                [length(NodesWithGamesEnrolled), length(NodesWithLogsPushed)]),
 
     case length(NodesWithLogsPushed) == lasp_config:get(client_number, 3) of
         true ->
-            lager:info("All nodes have pushed their logs"),
+            logger:info("All nodes have pushed their logs"),
             log_overcounting_and_convergence(GameList),
             lasp_instrumentation:stop(),
             lasp_support:push_logs(),
@@ -155,7 +155,7 @@ handle_info(check_simulation_end, #state{game_list=GameList}=State) ->
     {noreply, State};
 
 handle_info(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -219,7 +219,7 @@ trigger(GameId, Actor) ->
     MaxPlayers = lasp_config:get(max_players, ?MAX_PLAYERS_DEFAULT),
 
     EnforceFun = fun() ->
-            lager:info("Threshold for ~p reached; disabling!", [GameId]),
+            logger:info("Threshold for ~p reached; disabling!", [GameId]),
 
             %% Remove the game.
             {ok, _} = lasp:update(?ENROLLABLE_GAMES, {rmv, GameId}, Actor)
@@ -256,7 +256,7 @@ compute_overcounting(GameList) ->
             MaxPlayers = lasp_config:get(max_players, ?MAX_PLAYERS_DEFAULT),
             %% Size, because we count cardinality.
             Overcounting = sets:size(Value) - MaxPlayers,
-            lager:info("Game ~p had ~p enrolled out of ~p",
+            logger:info("Game ~p had ~p enrolled out of ~p",
                        [GameId, sets:size(Value), MaxPlayers]),
             OvercountingPercentage = (Overcounting * 100) / MaxPlayers,
             Acc + OvercountingPercentage

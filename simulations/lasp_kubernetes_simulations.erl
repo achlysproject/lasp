@@ -26,11 +26,11 @@
 stop() ->
     lists:foreach(
         fun(Deployment) ->
-            lager:info("Deleting Kubernetes deployment: ~p", [Deployment]),
+            logger:info("Deleting Kubernetes deployment: ~p", [Deployment]),
             delete_deployment(Deployment),
-            lager:info("Deleting Kubernetes replicasets."),
+            logger:info("Deleting Kubernetes replicasets."),
             delete_replicasets(Deployment),
-            lager:info("Deleting Kubernetes pods."),
+            logger:info("Deleting Kubernetes pods."),
             delete_pods(Deployment)
         end,
         deployments()).
@@ -44,7 +44,7 @@ delete_deployment(Deployment) ->
         {ok, _Response} ->
             ok;
         Error ->
-            _ = lager:info("Invalid Kubernetes response: ~p", [Error]),
+            _ = logger:info("Invalid Kubernetes response: ~p", [Error]),
             {error, Error}
     end.
 
@@ -66,7 +66,7 @@ delete_replicaset(#{<<"metadata">> := Metadata}) ->
         {ok, _Response} ->
             ok;
         Error ->
-            _ = lager:info("Invalid Kubernetes response: ~p", [Error]),
+            _ = logger:info("Invalid Kubernetes response: ~p", [Error]),
             {error, Error}
     end.
 
@@ -82,7 +82,7 @@ delete_pod(#{<<"metadata">> := Metadata}) ->
         {ok, _Response} ->
             ok;
         Error ->
-            _ = lager:info("Invalid Kubernetes response: ~p", [Error]),
+            _ = logger:info("Invalid Kubernetes response: ~p", [Error]),
             {error, Error}
     end.
 
@@ -100,7 +100,7 @@ delete_replicasets(Run) ->
             [delete_replicaset(Item) || Item <- Items],
             ok;
         Error ->
-            _ = lager:info("Invalid Kubernetes response: ~p", [Error]),
+            _ = logger:info("Invalid Kubernetes response: ~p", [Error]),
             {error, Error}
     end.
 
@@ -118,7 +118,7 @@ delete_pods(Run) ->
             [delete_pod(Item) || Item <- Items],
             ok;
         Error ->
-            _ = lager:info("Invalid Kubernetes response: ~p", [Error]),
+            _ = logger:info("Invalid Kubernetes response: ~p", [Error]),
             {error, Error}
     end.
 
@@ -128,27 +128,27 @@ deployments() ->
 
 %% @private
 get_request(Url, DecodeFun) ->
-    lager:info("Issuing GET request to: ~p", [Url]),
+    logger:info("Issuing GET request to: ~p", [Url]),
 
     Headers = headers(),
     case httpc:request(get, {Url, Headers}, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, DecodeFun(Body)};
         Other ->
-            _ = lager:info("Request failed; ~p", [Other]),
+            _ = logger:info("Request failed; ~p", [Other]),
             {error, invalid}
     end.
 
 %% @private
 delete_request(Url, DecodeFun) ->
-    lager:info("Issuing DELETE request to: ~p", [Url]),
+    logger:info("Issuing DELETE request to: ~p", [Url]),
 
     Headers = headers(),
     case httpc:request(delete, {Url, Headers}, [], [{body_format, binary}]) of
         {ok, {{_, 200, _}, _, Body}} ->
             {ok, DecodeFun(Body)};
         Other ->
-            _ = lager:info("Request failed; ~p", [Other]),
+            _ = logger:info("Request failed; ~p", [Other]),
             {error, invalid}
     end.
 

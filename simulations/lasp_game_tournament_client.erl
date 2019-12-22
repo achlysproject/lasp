@@ -55,7 +55,7 @@ start_link() ->
 %% @private
 -spec init([term()]) -> {ok, #state{}}.
 init([]) ->
-    lager:info("Game tournament client initialized."),
+    logger:info("Game tournament client initialized."),
 
     %% Generate actor identifier.
     Actor = node(),
@@ -80,13 +80,13 @@ init([]) ->
 -spec handle_call(term(), {pid(), term()}, #state{}) ->
     {reply, term(), #state{}}.
 handle_call(Msg, _From, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {reply, ok, State}.
 
 %% @private
 -spec handle_cast(term(), #state{}) -> {noreply, #state{}}.
 handle_cast(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -97,7 +97,7 @@ handle_info(log, #state{actor=Actor}=State) ->
     %% Get current value of the list of enrollments.
     {ok, GameList} = lasp:query(?ENROLLABLE_GAMES),
 
-    lager:info("Game list: ~p, node: ~p", [GameList, Actor]),
+    logger:info("Game list: ~p, node: ~p", [GameList, Actor]),
 
     %% Schedule logging.
     schedule_logging(),
@@ -157,7 +157,7 @@ handle_info(view, #state{actor=Actor,
     %% - Else, keep doing enrollments
     case sets:size(GameList) == 0 andalso not lasp_type:is_bottom(GamesType, GamesValue) of
         true ->
-            lager:info("All games are fully enrolled. Node: ~p", [Actor]),
+            logger:info("All games are fully enrolled. Node: ~p", [Actor]),
 
             %% Update Simulation Status Instance
             lasp:update(?SIM_STATUS_ID, {apply, Actor, {fst, true}}, Actor),
@@ -186,7 +186,7 @@ handle_info(check_simulation_end, #state{actor=Actor}=State) ->
 
     case length(NodesWithGamesEnrolled) == lasp_config:get(client_number, 3) of
         true ->
-            lager:info("All nodes observed games enrolled. Node ~p", [Actor]),
+            logger:info("All nodes observed games enrolled. Node ~p", [Actor]),
             lasp_instrumentation:stop(),
             lasp_support:push_logs(),
             lasp:update(?SIM_STATUS_ID, {apply, Actor, {snd, true}}, Actor);
@@ -197,7 +197,7 @@ handle_info(check_simulation_end, #state{actor=Actor}=State) ->
     {noreply, State};
 
 handle_info(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -248,7 +248,7 @@ trigger(GameId, Actor) ->
     MaxPlayers = lasp_config:get(max_players, ?MAX_PLAYERS_DEFAULT),
 
     EnforceFun = fun() ->
-            lager:info("Threshold for ~p reached; disabling!", [GameId]),
+            logger:info("Threshold for ~p reached; disabling!", [GameId]),
 
             %% Remove the game.
             {ok, _} = lasp:update(?ENROLLABLE_GAMES, {rmv, GameId}, Actor)

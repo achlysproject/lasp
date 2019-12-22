@@ -55,7 +55,7 @@ start_link() ->
 %% @private
 -spec init([term()]) -> {ok, #state{}}.
 init([]) ->
-    lager:info("Advertisement counter client initialized."),
+    logger:info("Advertisement counter client initialized."),
 
     %% Generate actor identifier.
     Actor = node(),
@@ -80,13 +80,13 @@ init([]) ->
 -spec handle_call(term(), {pid(), term()}, #state{}) ->
     {reply, term(), #state{}}.
 handle_call(Msg, _From, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {reply, ok, State}.
 
 %% @private
 -spec handle_cast(term(), #state{}) -> {noreply, #state{}}.
 handle_cast(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -98,7 +98,7 @@ handle_info(log, #state{actor=Actor,
     %% Get current value of the list of advertisements.
     {ok, Ads} = lasp:query(?ADS_WITH_CONTRACTS),
 
-    lager:info("Impressions: ~p, current ad size: ~p, node: ~p", [Impressions, sets:size(Ads), Actor]),
+    logger:info("Impressions: ~p, current ad size: ~p, node: ~p", [Impressions, sets:size(Ads), Actor]),
 
     %% Schedule advertisement counter impression.
     schedule_logging(),
@@ -148,7 +148,7 @@ handle_info(view, #state{actor=Actor,
             %% Increment register.
             {ok, _} = lasp:update(Register, increment, Actor),
 
-            lager:info("Impressions seen: ~p, node: ~p", [Value, Actor]),
+            logger:info("Impressions seen: ~p, node: ~p", [Value, Actor]),
 
             %% Increment impressions.
             {Impressions0 + 1, Triggers}
@@ -165,7 +165,7 @@ handle_info(view, #state{actor=Actor,
     %% - Else, keep doing impressions
     case sets:size(Ads) == 0 andalso not lasp_type:is_bottom(AdsType, AdsValue) of
         true ->
-            lager:info("All ads are disabled. Node: ~p", [Actor]),
+            logger:info("All ads are disabled. Node: ~p", [Actor]),
 
             %% Update Simulation Status Instance
             lasp:update(?SIM_STATUS_ID, {apply, Actor, {fst, true}}, Actor),
@@ -194,7 +194,7 @@ handle_info(check_simulation_end, #state{actor=Actor}=State) ->
 
     case length(NodesWithAdsDisabled) == client_number() of
         true ->
-            lager:info("All nodes observed ads disabled. Node ~p", [Actor]),
+            logger:info("All nodes observed ads disabled. Node ~p", [Actor]),
             lasp_instrumentation:stop(),
             lasp_support:push_logs(),
             lasp:update(?SIM_STATUS_ID, {apply, Actor, {snd, true}}, Actor);
@@ -205,7 +205,7 @@ handle_info(check_simulation_end, #state{actor=Actor}=State) ->
     {noreply, State};
 
 handle_info(Msg, State) ->
-    lager:warning("Unhandled messages: ~p", [Msg]),
+    logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -278,7 +278,7 @@ trigger(#ad{counter=CounterId} = Ad, Actor) ->
                                      ?MAX_IMPRESSIONS_DEFAULT),
 
     EnforceFun = fun() ->
-            lager:info("Threshold for ~p reached; disabling!", [Ad]),
+            logger:info("Threshold for ~p reached; disabling!", [Ad]),
 
             %% Remove the advertisement.
             {ok, _} = lasp:update(?ADS, {rmv, Ad}, Actor)

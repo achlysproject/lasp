@@ -123,7 +123,7 @@ prop_sequential() ->
                 end)).
 
 setup() ->
-    {ok, _Apps} = application:ensure_all_started(lager),
+    % {ok, _Apps} = application:ensure_all_started(lager),
     ok.
 
 teardown() ->

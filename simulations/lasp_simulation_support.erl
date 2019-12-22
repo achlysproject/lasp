@@ -71,8 +71,8 @@ start(Case, _Config, Options) ->
                              false),
     application:start(sasl),
 
-    %% Load lager.
-    {ok, _} = application:ensure_all_started(lager),
+    %% Load logger.
+    {ok, _} = application:ensure_all_started(logger),
 
     %% Start all three nodes.
     InitializerFun = fun(Name) ->
@@ -97,7 +97,7 @@ start(Case, _Config, Options) ->
                             ct:pal("Loading lasp on node: ~p", [Node]),
 
                             PrivDir = code:priv_dir(?APP),
-                            NodeDir = filename:join([PrivDir, "lager", Case, Node]),
+                            NodeDir = filename:join([PrivDir, "logger", Case, Node]),
 
                             %% Manually force sasl loading, and disable the logger.
                             ok = rpc:call(Node, application, load, [sasl]),
@@ -107,7 +107,7 @@ start(Case, _Config, Options) ->
 
                             ok = rpc:call(Node, application, load, [plumtree]),
                             ok = rpc:call(Node, application, load, [partisan]),
-                            ok = rpc:call(Node, application, load, [lager]),
+                            ok = rpc:call(Node, application, load, [logger]),
                             ok = rpc:call(Node, application, load, [lasp]),
                             ok = rpc:call(Node, application, set_env, [sasl,
                                                                        sasl_error_logger,
@@ -115,7 +115,7 @@ start(Case, _Config, Options) ->
                             ok = rpc:call(Node, application, set_env, [lasp,
                                                                        instrumentation,
                                                                        false]),
-                            ok = rpc:call(Node, application, set_env, [lager,
+                            ok = rpc:call(Node, application, set_env, [logger,
                                                                        log_root,
                                                                        NodeDir]),
                             ok = rpc:call(Node, application, set_env, [plumtree,

@@ -144,7 +144,7 @@ init([]) ->
 
     {ok, TRef} = start_transmission_timer(),
 
-    _ = lager:info("Instrumentation timer enabled!"),
+    _ = logger:info("Instrumentation timer enabled!"),
 
     {ok, #state{tref=TRef, status=running,
                 size_per_type=orddict:new()}}.
@@ -194,18 +194,18 @@ handle_call(experiment_started, _From, #state{}=State) ->
 
 handle_call(stop, _From, #state{tref=TRef}=State) ->
     {ok, cancel} = timer:cancel(TRef),
-    _ = lager:info("Instrumentation timer disabled!"),
+    _ = logger:info("Instrumentation timer disabled!"),
     {reply, ok, State#state{tref=undefined}};
 
 %% @private
 handle_call(Msg, _From, State) ->
-    _ = lager:warning("Unhandled messages: ~p", [Msg]),
+    _ = logger:warning("Unhandled messages: ~p", [Msg]),
     {reply, ok, State}.
 
 %% @private
 -spec handle_cast(term(), #state{}) -> {noreply, #state{}}.
 handle_cast(Msg, State) ->
-    _ = lager:warning("Unhandled messages: ~p", [Msg]),
+    _ = logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -216,7 +216,7 @@ handle_info(transmission, #state{size_per_type=Map, status=running}=State) ->
     {noreply, State#state{tref=TRef}};
 
 handle_info(Msg, State) ->
-    _ = lager:warning("Unhandled messages: ~p", [Msg]),
+    _ = logger:warning("Unhandled messages: ~p", [Msg]),
     {noreply, State}.
 
 %% @private
@@ -333,7 +333,7 @@ record_batch(Start, End, Events) ->
     Filename = main_log(),
     Timestamp = timestamp(),
     MsDiff = round(timer:now_diff(End, Start) / 1000),
-    lager:info("Batch finished! Start: ~p End: ~p Diff: ~p", [Start, End, MsDiff]),
+    logger:info("Batch finished! Start: ~p End: ~p Diff: ~p", [Start, End, MsDiff]),
     Line = get_batch_line(Timestamp, Start, End, Events, MsDiff),
     append_to_file(Filename, Line).
 
@@ -353,7 +353,7 @@ record_experiment_started() ->
 
 %% @private
 record_overcounting(Value) ->
-    lager:info("Overcounting ~p%", [Value]),
+    logger:info("Overcounting ~p%", [Value]),
     Filename = overcounting_log(),
     Line = io_lib:format("~w", [Value]),
     write_to_file(Filename, Line).

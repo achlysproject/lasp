@@ -35,7 +35,7 @@ fprof.trace
 dcos/
 priv/ssh/*id_rsa*
 priv/evaluation
-priv/lager
+priv/logger
 src/lasp_sql_lexer.erl
 src/lasp_sql_parser.erl
 bin/a
