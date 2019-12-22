@@ -295,6 +295,7 @@ load_lasp(Node, _Config, Case) ->
         
     PrivDir = code:priv_dir(?APP),
     NodeDir = filename:join([PrivDir, "lager", Case, Node]),
+    % NodeDir = filename:join([PrivDir, "logger", Case, Node]),
 
     %% Manually force sasl loading, and disable the logger.
     ok = rpc:call(Node, application, load, [sasl]),
@@ -304,7 +305,7 @@ load_lasp(Node, _Config, Case) ->
 
     ok = rpc:call(Node, application, load, [plumtree]),
     ok = rpc:call(Node, application, load, [partisan]),
-    ok = rpc:call(Node, application, load, [lager]),
+    % ok = rpc:call(Node, application, load, [lager]),
     ok = rpc:call(Node, application, load, [lasp]),
     ok = rpc:call(Node, application, set_env, [sasl,
                                                sasl_error_logger,
